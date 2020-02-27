@@ -1,0 +1,487 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>segMask</class>
+ <widget class="QDialog" name="segMask">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1062</width>
+    <height>760</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QDialog {
+	background-color: rgb(20,20,23);
+}</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
+  </property>
+  <widget class="QGraphicsView" name="graphicsView_seg">
+   <property name="geometry">
+    <rect>
+     <x>11</x>
+     <y>99</y>
+     <width>1041</width>
+     <height>651</height>
+    </rect>
+   </property>
+   <property name="cursor" stdset="0">
+    <cursorShape>ArrowCursor</cursorShape>
+   </property>
+   <property name="autoFillBackground">
+    <bool>false</bool>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QGraphicsView {background-color:rgb(204,204,204);}</string>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Plain</enum>
+   </property>
+   <property name="lineWidth">
+    <number>10</number>
+   </property>
+   <property name="verticalScrollBarPolicy">
+    <enum>Qt::ScrollBarAlwaysOff</enum>
+   </property>
+   <property name="horizontalScrollBarPolicy">
+    <enum>Qt::ScrollBarAlwaysOff</enum>
+   </property>
+   <property name="backgroundBrush">
+    <brush brushstyle="NoBrush">
+     <color alpha="255">
+      <red>0</red>
+      <green>0</green>
+      <blue>0</blue>
+     </color>
+    </brush>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_mask">
+   <property name="geometry">
+    <rect>
+     <x>966</x>
+     <y>43</y>
+     <width>80</width>
+     <height>45</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton#pushButton_mask {
+	color: white;
+    background-color:  rgb(104, 104, 104);
+    border-style: none;
+    border-width: 2px;
+    border-color: rgb(104, 104, 104);
+}
+QPushButton#pushButton_mask:pressed {
+    background-color: rgb(50, 50, 50);
+    border-style: inset;
+}</string>
+   </property>
+   <property name="text">
+    <string>Generate
+Mask</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_forebox">
+   <property name="geometry">
+    <rect>
+     <x>17</x>
+     <y>43</y>
+     <width>80</width>
+     <height>45</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton#pushButton_forebox {
+	color: white;
+    background-color:  rgb(104, 104, 104);
+    border-style: none;
+    border-width: 2px;
+    border-color: rgb(104, 104, 104);
+}
+QPushButton#pushButton_forebox:pressed {
+    background-color: rgb(50, 50, 50);
+    border-style: inset;
+}</string>
+   </property>
+   <property name="text">
+    <string>Bounding
+Box</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_foreground">
+   <property name="geometry">
+    <rect>
+     <x>107</x>
+     <y>43</y>
+     <width>80</width>
+     <height>45</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton#pushButton_foreground {
+	color: white;
+    background-color:  rgb(104, 104, 104);
+    border-style: none;
+    border-width: 2px;
+    border-color: rgb(104, 104, 104);
+}
+QPushButton#pushButton_foreground:pressed {
+    background-color: rgb(50, 50, 50);
+    border-style: inset;
+}</string>
+   </property>
+   <property name="text">
+    <string>Foreground
+Marker</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_background">
+   <property name="geometry">
+    <rect>
+     <x>197</x>
+     <y>43</y>
+     <width>80</width>
+     <height>45</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton#pushButton_background {
+	color: white;
+    background-color:  rgb(104, 104, 104);
+    border-style: none;
+    border-width: 2px;
+    border-color: rgb(104, 104, 104);
+}
+QPushButton#pushButton_background:pressed {
+    background-color: rgb(50, 50, 50);
+    border-style: inset;
+}</string>
+   </property>
+   <property name="text">
+    <string>Background
+Marker</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>11</x>
+     <y>38</y>
+     <width>361</width>
+     <height>55</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel{
+    background-color:  rgb(65, 65, 65);
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>12</x>
+     <y>38</y>
+     <width>90</width>
+     <height>55</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel{
+    background-color:  rgb(240, 240, 240);
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_3">
+   <property name="geometry">
+    <rect>
+     <x>102</x>
+     <y>38</y>
+     <width>90</width>
+     <height>55</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel{
+    background-color:  rgb(240, 240, 240);
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_4">
+   <property name="geometry">
+    <rect>
+     <x>192</x>
+     <y>38</y>
+     <width>90</width>
+     <height>55</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel{
+    background-color:  rgb(240, 240, 240);
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_left">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>5</width>
+     <height>760</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Tunga</family>
+     <pointsize>15</pointsize>
+     <weight>75</weight>
+     <italic>true</italic>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel#label_left {
+	background-color: rgb(14,99, 186);
+	color: white;
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_foot">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>755</y>
+     <width>1062</width>
+     <height>5</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Tunga</family>
+     <pointsize>15</pointsize>
+     <weight>75</weight>
+     <italic>true</italic>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel#label_foot {
+	background-color: rgb(14,99, 186);
+	color: white;
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_right">
+   <property name="geometry">
+    <rect>
+     <x>1057</x>
+     <y>0</y>
+     <width>5</width>
+     <height>760</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Tunga</family>
+     <pointsize>15</pointsize>
+     <weight>75</weight>
+     <italic>true</italic>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel#label_right {
+	background-color: rgb(14,99, 186);
+	color: white;
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_header">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1062</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>MS Sans Serif</family>
+     <pointsize>14</pointsize>
+     <weight>75</weight>
+     <italic>true</italic>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel#label_header {
+	background-color: rgb(14,99, 186);
+	color: white;
+}</string>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+   <property name="text">
+    <string> Mask Generator</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_5">
+   <property name="geometry">
+    <rect>
+     <x>282</x>
+     <y>38</y>
+     <width>90</width>
+     <height>55</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel{
+    background-color:  rgb(240, 240, 240);
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_refine">
+   <property name="geometry">
+    <rect>
+     <x>287</x>
+     <y>43</y>
+     <width>80</width>
+     <height>45</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton#pushButton_refine {
+	color: white;
+    background-color:  rgb(104, 104, 104);
+    border-style: none;
+    border-width: 2px;
+    border-color: rgb(104, 104, 104);
+}
+QPushButton#pushButton_refine:pressed {
+    background-color: rgb(50, 50, 50);
+    border-style: inset;
+}</string>
+   </property>
+   <property name="text">
+    <string>Refine
+Markers</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_6">
+   <property name="geometry">
+    <rect>
+     <x>961</x>
+     <y>38</y>
+     <width>90</width>
+     <height>55</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel{
+    background-color:  rgb(60, 170, 60);
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_close">
+   <property name="geometry">
+    <rect>
+     <x>1026</x>
+     <y>0</y>
+     <width>36</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Century Gothic</family>
+     <pointsize>16</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="mouseTracking">
+    <bool>true</bool>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton#pushButton_close {
+	color: white;
+    background-color:  rgb(55, 55, 55);
+    border-style: none;
+    border-width: 2px;
+    border-color: rgb(104, 104, 104);
+}
+QPushButton#pushButton_close:pressed {
+    background-color: rgb(220, 0, 0);
+    border-style: inset;
+}</string>
+   </property>
+   <property name="text">
+    <string>X</string>
+   </property>
+   <property name="flat">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <zorder>label_6</zorder>
+  <zorder>label</zorder>
+  <zorder>label_5</zorder>
+  <zorder>label_4</zorder>
+  <zorder>label_3</zorder>
+  <zorder>label_2</zorder>
+  <zorder>graphicsView_seg</zorder>
+  <zorder>pushButton_mask</zorder>
+  <zorder>pushButton_forebox</zorder>
+  <zorder>pushButton_foreground</zorder>
+  <zorder>pushButton_background</zorder>
+  <zorder>label_left</zorder>
+  <zorder>label_foot</zorder>
+  <zorder>label_right</zorder>
+  <zorder>label_header</zorder>
+  <zorder>pushButton_refine</zorder>
+  <zorder>pushButton_close</zorder>
+ </widget>
+ <resources>
+  <include location="segMask.qrc"/>
+ </resources>
+ <connections/>
+</ui>
