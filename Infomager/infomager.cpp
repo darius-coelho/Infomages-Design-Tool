@@ -1409,17 +1409,44 @@ void Infomager::on_pushButton_optimizeChart_clicked() {
 		double c2 = computePieAngles();
 		orig_arc_angles = angles;
 		pieType = Rad;
-		//double c3 = computePieAngles();
-		//orig_rad_angles = angles;
-		max_cost = c2;//(c1 + c2 + c3) / 3;
+		double c3 = computePieAngles();
+		orig_rad_angles = angles;
+		max_cost = (c1 + c2 + c3) / 3;
 		optimize = true;
 		optimizePie();
 	}
 	if (chartType == Pie && divType == Horizontal) {
-		QMessageBox::information(0, "info", QString("HorOptimize"));
+		//QMessageBox::information(0, "info", QString("HorOptimize"));
+		write_text_to_log_file("HorizontalChartOptimize\n");
+		ui.label_pieRad->setStyleSheet("background: rgb(240, 240, 240);");
+		ui.label_pieAr->setStyleSheet("background: rgb(65, 65, 65);");
+		pieType = Area;
+		double c1 = computeHorizontal();
+		orig_area_angles = angles;
+		pieType = Arc;
+		double c2 = computeHorizontal();
+		orig_arc_angles = angles;
+		max_cost = (c1 + c2) / 2;
+		optimize = true;
+		optimizeHorizontal();
 	}
 	if (chartType == Pie && divType == Vertical) {
-		QMessageBox::information(0, "info", QString("VerOptimize"));
+		//QMessageBox::information(0, "info", QString("VerOptimize"));
+		write_text_to_log_file("VerticalChartOptimize\n");
+		ui.label_pieRad->setStyleSheet("background: rgb(240, 240, 240);");
+		ui.label_pieAr->setStyleSheet("background: rgb(65, 65, 65);");
+		pieType = Area;
+		double c1 = computeVertical();
+		orig_area_angles = angles;
+		pieType = Arc;
+		double c2 = computeVertical();
+		orig_arc_angles = angles;
+		max_cost = (c1 + c2) / 2;
+		optimize = true;
+		char buffer2[100];
+		sprintf_s(buffer2, "Call Optimize Vertical\n");
+		OutputDebugStringA(buffer2);
+		optimizeVertical();
 	}
 	if (chartType == Line) {		
 		optimzeAspectRatio(false);
@@ -1428,7 +1455,50 @@ void Infomager::on_pushButton_optimizeChart_clicked() {
 		optimzeAspectRatio(true);
 	}
 	if (chartType == Bar && !barOverlay) {
-		QMessageBox::information(0, "info", QString("BarFillOptimize"));
+		QMessageBox::information(0, "info", QString("BarFillOptimize"));		
+		
+		barType = BarArea;
+		double c1 = 0;
+		scene_infomage->setCurrentBackdrop(filtimg);
+		QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(scene_infomage->getCurrentBackdrop(), QImage::Format_RGB888).rgbSwapped());
+		scene_infomage->refreshBackrop(pix_viz);
+		scene_infomage->removePieLabels();
+		for (int i = 0; i < barMasksSet.size(); i++)
+		{
+			if (barMasksSet[i])
+			{
+				c1 = this->fillBarChart(i);
+			}
+		}
+		QPixmap filt_backdrop = QPixmap::fromImage(mat_to_qimage_ref(scene_infomage->getCurrentBackdrop(), QImage::Format_RGB888).rgbSwapped());
+		scene_infomage->refreshBackrop(filt_backdrop);
+		
+		
+		barType = BarHeight;
+		double c2 = 0;
+		scene_infomage->setCurrentBackdrop(filtimg);
+		pix_viz = QPixmap::fromImage(mat_to_qimage_ref(scene_infomage->getCurrentBackdrop(), QImage::Format_RGB888).rgbSwapped());
+		scene_infomage->refreshBackrop(pix_viz);
+		scene_infomage->removePieLabels();
+		for (int i = 0; i < barMasksSet.size(); i++)
+		{
+			if (barMasksSet[i])
+			{
+				c2 = this->fillBarChart(i);
+			}
+		}
+		filt_backdrop = QPixmap::fromImage(mat_to_qimage_ref(scene_infomage->getCurrentBackdrop(), QImage::Format_RGB888).rgbSwapped());
+		scene_infomage->refreshBackrop(filt_backdrop);
+		
+		
+		max_cost = (c1 + c2) / 2;
+		optimize = true;
+		barType = BarOptimize;
+		char buffer2[100];
+		sprintf_s(buffer2, "Call Optimize Vertical %f\n", max_cost);
+		OutputDebugStringA(buffer2);
+		optimizeBar();
+		barType = BarHeight;
 	}
 }
 
@@ -1693,7 +1763,7 @@ double Infomager::computePieAngles()
 		angles.push_back(360 + pieRot); // Add 360 to the hardcoded offset
 		drawing_tmp.release();
 	}
-	else if (pieType == Rad)
+	else if (pieType == Rad & !optimize)
 	{
 		//Based on Angles
 		double offset = pieRot;
@@ -2168,7 +2238,7 @@ double Infomager::acceptance_probability(double old_cost, double new_cost, doubl
 	if ((new_cost - old_cost) >= 0.5) {
 		return 0;
 	}
-	return 0.5;
+	return exp(-(new_cost - old_cost) / T);
 }
 
 void Infomager::optimizePie() {	
@@ -2210,6 +2280,152 @@ void Infomager::optimizePie() {
 	scene_infomage->refreshBackrop(pix_viz);
 }
 
+void Infomager::generateNeighborHorDiv() {
+	std::vector<double> newAngles;
+	std::vector<double> randNos;
+	double randTot = 0.0;
+	double remove = ((double)rand() / (RAND_MAX)) * 10;
+	newAngles.push_back(angles[0]);
+	for (int i = 1; i < angles.size() - 1; i++) {
+		int rNo = rand() % 100 + 1;
+		randTot = randTot + rNo;
+		randNos.push_back(rNo);		
+		newAngles.push_back(angles[i] - remove);		
+	}
+
+	double reqdTot = (angles.size() - 2) * remove;
+
+	for (int i = 1; i < newAngles.size(); i++) {
+		newAngles[i] = newAngles[i] + (randNos[i] * reqdTot / randTot);
+	}
+	newAngles.push_back(angles[angles.size() - 1]);
+
+	for (int i = 0; i < angles.size(); i++) {
+		angles[i] = newAngles[i];
+		//QMessageBox::information(0, "info", QString("Rand: %1").arg(newAngles[i]));
+	}
+}
+
+void Infomager::optimizeHorizontal() {
+	double old_cost = computeHorizontal();
+	double T = 1.0;
+	double T_min = 0.00001;
+	double alpha = 0.9;
+	std::vector<double> curr_angles = angles;
+	while (T > T_min) {
+		int i = 1;
+		int j = 1;
+		while (i <= 200 & j <= 200) {
+			generateNeighborHorDiv();
+			double new_cost = computeHorizontal();
+			double ap = acceptance_probability(old_cost, new_cost, T);
+			//QMessageBox::information(0, "info", QString("Optimize %1").arg(ap));
+			double r = ((double)rand() / (RAND_MAX)) + 0.00001;
+			if (ap > r) {
+				char buffer[100];
+				sprintf_s(buffer, "Error Diff: %f\n", (new_cost - old_cost));
+				OutputDebugStringA(buffer);
+				curr_angles = angles;
+				old_cost = new_cost;
+				i += 1;
+				j = 1;
+			}
+			else {
+				char buffer[100];
+				sprintf_s(buffer, "Angles: %f %f %f %f\n", angles[1], angles[2], angles[3]);
+				OutputDebugStringA(buffer);
+				sprintf_s(buffer, "Angles: %f %f %f %f\n", curr_angles[1], curr_angles[2], curr_angles[3]);
+				OutputDebugStringA(buffer);
+				sprintf_s(buffer, "Error Diff: %f\n", (new_cost - old_cost));
+				OutputDebugStringA(buffer);
+				angles = curr_angles;
+				j += 1;
+			}
+		}
+		//ui.label_pie_avg_err->setText(QString("Avg: %1").arg(old_cost));
+		//QMessageBox::information(0, "info", QString("Optimize %1").arg(old_cost));
+		T = T * alpha;
+	}
+	QMessageBox::information(0, "info", QString("Optimize done"));
+	//ui.label_pie_avg_err->setText(QString("Avg: %1").arg(old_cost));
+	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillHorizontal(), QImage::Format_RGB888).rgbSwapped());
+	scene_infomage->refreshBackrop(pix_viz);
+}
+
+void Infomager::generateNeighborVerDiv() {
+	std::vector<double> newAngles;
+	std::vector<double> randNos;
+	double randTot = 0.0;
+	double remove = ((double)rand() / (RAND_MAX)) * 10;
+	newAngles.push_back(angles[0]);
+	for (int i = 1; i < angles.size() - 1; i++) {
+		int rNo = rand() % 100 + 1;
+		randTot = randTot + rNo;
+		randNos.push_back(rNo);
+		newAngles.push_back(angles[i] - remove);
+	}
+
+	double reqdTot = (angles.size() - 2) * remove;
+
+	for (int i = 1; i < newAngles.size(); i++) {
+		newAngles[i] = newAngles[i] + (randNos[i] * reqdTot / randTot);
+	}
+	newAngles.push_back(angles[angles.size() - 1]);
+
+	for (int i = 0; i < angles.size(); i++) {
+		angles[i] = newAngles[i];
+		//QMessageBox::information(0, "info", QString("Rand: %1").arg(newAngles[i]));
+	}
+}
+
+void Infomager::optimizeVertical() {
+	char buffer2[100];
+	sprintf_s(buffer2, "Start Optimize Vertical");
+	OutputDebugStringA(buffer2);
+	double old_cost = computeVertical();
+	double T = 1.0;
+	double T_min = 0.00001;
+	double alpha = 0.9;
+	std::vector<double> curr_angles = angles;
+	while (T > T_min) {
+		int i = 1;
+		int j = 1;
+		while (i <= 200 & j <= 200) {
+			generateNeighborVerDiv();
+			double new_cost = computeVertical();
+			double ap = acceptance_probability(old_cost, new_cost, T);
+			//QMessageBox::information(0, "info", QString("Optimize %1").arg(ap));
+			double r = ((double)rand() / (RAND_MAX)) + 0.00001;
+			if (ap > r) {
+				char buffer[100];
+				sprintf_s(buffer, "Error Diff: %f\n", (new_cost - old_cost));
+				OutputDebugStringA(buffer);
+				curr_angles = angles;
+				old_cost = new_cost;
+				i += 1;
+				j = 1;
+			}
+			else {
+				char buffer[100];
+				sprintf_s(buffer, "Angles: %f %f %f %f\n", angles[1], angles[2], angles[3]);
+				OutputDebugStringA(buffer);
+				sprintf_s(buffer, "Angles: %f %f %f %f\n", curr_angles[1], curr_angles[2], curr_angles[3]);
+				OutputDebugStringA(buffer);
+				sprintf_s(buffer, "Error Diff: %f\n", (new_cost - old_cost));
+				OutputDebugStringA(buffer);
+				angles = curr_angles;
+				j += 1;
+			}
+		}
+		//ui.label_pie_avg_err->setText(QString("Avg: %1").arg(old_cost));
+		//QMessageBox::information(0, "info", QString("Optimize %1").arg(old_cost));
+		T = T * alpha;
+	}
+	QMessageBox::information(0, "info", QString("Optimize done"));
+	//ui.label_pie_avg_err->setText(QString("Avg: %1").arg(old_cost));
+	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillVertical(), QImage::Format_RGB888).rgbSwapped());
+	scene_infomage->refreshBackrop(pix_viz);
+}
 
 void Infomager::on_comboBoxBrewerNames_currentIndexChanged(const QString & text)
 {
@@ -2517,7 +2733,7 @@ double Infomager::computeHorizontal()
 			offset = stop - 0.5;
 			areas.push_back(area_tmp);
 		}
-		angles.push_back(offset); // Add 360 to the hardcoded offset
+		angles.push_back(encRect.x + encRect.width); // Add 360 to the hardcoded offset
 		drawing_tmp.release();
 	}
 	else if (pieType == Arc & !optimize)
@@ -2616,7 +2832,7 @@ cv::Mat Infomager::fillHorizontal()
 	cv::Mat image(filtimg.size(), CV_8UC3);
 	filtimg.copyTo(image);
 
-	//draw a piechart based on the angles computed
+	//draw a rect based on the angles computed
 	cv::Mat drawing(filtimg.size(), CV_8UC3, cv::Scalar(0, 0, 0));
 	cv::Point pt;
 	pt.x = pieCenter.x;
@@ -2627,7 +2843,7 @@ cv::Mat Infomager::fillHorizontal()
 		cv::Scalar color = cv::Scalar(pieColors[j].red(), pieColors[j].green(), pieColors[j].blue());
 		double start = angles[j];
 		double stop = angles[j + 1];
-	   // QMessageBox::information(0, "info", QString(" Angle: %1").arg(angles[j]));
+	//    QMessageBox::information(0, "info", QString(" Angle: %1").arg(angles[j]));
 
 		
 		cv::Point pt1(start, 0);
@@ -2715,6 +2931,9 @@ cv::Mat Infomager::fillHorizontal()
 //Horizontal Chart
 double Infomager::computeVertical()
 {
+	char buffer2[100];
+	sprintf_s(buffer2, "Start Compute Vertical\n");
+	OutputDebugStringA(buffer2);
 	cv::Mat src2;
 	int thresh = 100;
 	int max_thresh = 255;
@@ -2782,6 +3001,9 @@ double Infomager::computeVertical()
 		//Based on area
 		double area = contourArea(contours[bigIdx]); //Total region area
 		cv::Rect encRect = boundingRect(contours[bigIdx]);
+		char buffer[100];
+		sprintf_s(buffer, "Top: %f Bottom: %f\n", (double) encRect.y, (double) encRect.y + encRect.height);
+		OutputDebugStringA(buffer);
 		double offset = encRect.y; // Start angle of first segment (offset from 0)
 		cv::Mat drawing_tmp = cv::Mat::zeros(threshold_output.size(), CV_8UC3); // Temporary image to hold each segment of the area to compute the segment area
 		for (int j = 0; j < t_val.size(); j++)
@@ -2789,28 +3011,32 @@ double Infomager::computeVertical()
 			drawing_tmp = cv::Mat::zeros(threshold_output.size(), CV_8UC3);  // Temporary image to hold each segment of the area to compute the segment area
 			drawing = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
 			double start = offset;
-			double stop = start + 0.5;
+			double stop = start + 1;
 			double area_tmp = 0.0;
 			angles.push_back(offset);
-			while (area_tmp < (area*t_val[j] / total))
+			while (area_tmp < (area*t_val[j] / total) & stop <= encRect.y + encRect.height)
 			{
 				drawing_tmp = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
 				drawing = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
 				//ellipse(drawing, pieCenter, cv::Size((int)radius[bigIdx] * 2, (int)radius[bigIdx] * 2), 0, start, stop, cv::Scalar(255, 255, 255), -2, 8, 0);				
-				cv::Point pt1(encRect.y,start);
+				cv::Point pt1(encRect.x, start);
 				cv::Point pt2(encRect.x + encRect.width, stop);
 				rectangle(drawing, pt1, pt2, cv::Scalar(255, 255, 255), -2, 8, 0);
 				drawing.copyTo(drawing_tmp, src2);
 				cvtColor(drawing_tmp, drawing_tmp, CV_BGR2GRAY);
 				threshold(drawing_tmp, threshold_output, thresh, 255, cv::THRESH_BINARY);
 				findContours(threshold_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
-				stop = stop + 0.5;
-				area_tmp = contourArea(contours[0]);
+				stop = stop + 1;
+				area_tmp = contourArea(contours[0]);				
 			}
-			offset = stop - 0.5;
+			offset = stop - 1;
 			areas.push_back(area_tmp);
+			
 		}
-		angles.push_back(360 + offset); // Add 360 to the hardcoded offset
+		char buffer3[100];
+		sprintf_s(buffer3, "End Compute Area \n");
+		OutputDebugStringA(buffer3);
+		angles.push_back(encRect.y + encRect.height); // Add 360 to the hardcoded offset
 		drawing_tmp.release();
 	}
 	else if (pieType == Arc & !optimize)
@@ -2904,6 +3130,9 @@ double Infomager::computeVertical()
 
 cv::Mat Infomager::fillVertical()
 {
+	char buffer2[100];
+	sprintf_s(buffer2, "Fill Vertical\n");
+	OutputDebugStringA(buffer2);
 	cv::Mat image(filtimg.size(), CV_8UC3);
 	filtimg.copyTo(image);
 
@@ -3559,7 +3788,7 @@ void Infomager::on_pushButton_barOverlay_clicked()
 	}
 }
 
-void Infomager::barError()
+double Infomager::barError()
 {
 	if (chartType == Bar && barOverlay)
 	{
@@ -3705,8 +3934,9 @@ void Infomager::barError()
 		ui.label_errVal4->setText(QString::number(100 * avgError, 'g', 2).append("%"));
 		pinX = (int)120 * avgError;
 		ui.label_errorPin4->setGeometry(pinX, 121, 4, 22);
-
+		return avgError;
 	}	
+	return 0;
 }
 
 void Infomager::drawBarChart()
@@ -3935,13 +4165,12 @@ void Infomager::on_pushButton_barMaskNext_clicked()
 	}
 }
 
-void Infomager::fillBarChart(int idx)
+double Infomager::fillBarChart(int idx)
 {	
 	cv::Mat src2;
 	int thresh = 100;
 	int max_thresh = 255;
 	// Convert image to gray and blur it
-
 	cvtColor(barMasks[idx], src2, CV_GRAY2RGB);
 
 	cv::Mat threshold_output;
@@ -3981,6 +4210,15 @@ void Infomager::fillBarChart(int idx)
 		total = total + t_val[j];
 	}
 
+	double t_valMax = 1;
+
+	for (int j = 0; j < t_val.size(); j++)
+	{
+		if (t_val[j] > t_valMax) {
+			t_valMax = t_val[j];
+		}
+	}
+
 	double offset = 0.0;
 	cv::Mat drawing_tmp = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
 	cv::Mat drawing = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
@@ -3992,7 +4230,8 @@ void Infomager::fillBarChart(int idx)
 		double yMin = ui.doubleSpinBox_yMinBarFill->value();
 		double yMax = ui.doubleSpinBox_yMaxBarFill->value();
 
-		int top = boundRect[b].y + boundRect[b].height - ((t_val[idx] / total) * boundRect[b].height);
+		//int top = boundRect[b].y + boundRect[b].height - ((t_val[idx] / total) * boundRect[b].height); 
+		int top = boundRect[b].y + boundRect[b].height - ((t_val[idx] / t_valMax) * boundRect[b].height);
 		if (!barPercentage) {
 			top = barFillYMax - (((t_val[idx] - yMin)/ (yMax - yMin)) * (barFillYMax - barFillYMin));
 		}
@@ -4031,7 +4270,8 @@ void Infomager::fillBarChart(int idx)
 		int top = boundRect[b].y + boundRect[b].height - (mux * boundRect[b].height);
 		double ht = 1;
 		double area = contourArea(contours[b]);
-		double cutOff = (t_val[idx] / total);
+		//double cutOff = (t_val[idx] / total);
+		double cutOff = (t_val[idx] / t_valMax);
 		double yMin = ui.doubleSpinBox_yMinBarFill->value();
 		double yMax = ui.doubleSpinBox_yMaxBarFill->value();
 		if (!barPercentage) {
@@ -4077,6 +4317,41 @@ void Infomager::fillBarChart(int idx)
 			mux = mux + 0.005;
 			top = boundRect[b].y + boundRect[b].height - (mux * boundRect[b].height);
 		}
+
+	}
+	else if (barType == BarOptimize) {
+		//Based on mask height
+
+		int top = boundRect[b].y + boundRect[b].height - barMaskHeights[idx];
+		
+		cv::Point p1(boundRect[b].x, top);
+		cv::Point p2(boundRect[b].x + boundRect[b].width, boundRect[b].y + boundRect[b].height);
+		labelPos = p1;
+		//barMaskHeights[idx] = (boundRect[b].y + boundRect[b].height) - top;
+
+		rectangle(drawing, p1, p2, cv::Scalar(barColor.blue(), barColor.green(), barColor.red()), -2, 8, 0);
+		drawing.copyTo(drawing_tmp, src2);
+
+		src2 = cv::Mat::zeros(src2.size(), CV_8UC1);
+		cvtColor(drawing_tmp, src2, CV_BGR2GRAY);
+
+		cv::Mat threshold_output2;
+		std::vector<std::vector<cv::Point> > contours2;
+		std::vector<cv::Vec4i> hierarchy2;
+
+		// Detect edges using Threshold
+		threshold(src2, threshold_output2, thresh, 255, cv::THRESH_BINARY);
+		// Find contours
+		findContours(threshold_output2, contours2, hierarchy2, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+
+		barMaskAreas[idx] = -1.0;
+		for (int i = 0; i < contours2.size(); i++)
+		{
+			if (barMaskAreas[idx] < contourArea(contours2[i]))
+			{
+				barMaskAreas[idx] = contourArea(contours2[i]);
+			}
+		}
 	}
 
 	//Get Background Image
@@ -4097,9 +4372,6 @@ void Infomager::fillBarChart(int idx)
 				image.at<cv::Vec3b>(x, y).val[0] = image.at<cv::Vec3b>(x, y).val[0]+10;
 				image.at<cv::Vec3b>(x, y).val[1] = intensity.val[1];
 				image.at<cv::Vec3b>(x, y).val[2] = intensity.val[2];
-				//image.at<cv::Vec3b>(x, y).val[0] = image.at<cv::Vec3b>(x, y).val[0] +25;
-				//image.at<cv::Vec3b>(x, y).val[1] = image.at<cv::Vec3b>(x, y).val[1] + 25;
-				//image.at<cv::Vec3b>(x, y).val[2] = image.at<cv::Vec3b>(x, y).val[2] + 25;
 			}
 		}
 	}
@@ -4116,7 +4388,7 @@ void Infomager::fillBarChart(int idx)
 	tmp->setFlag(QGraphicsItem::ItemIsSelectable, true);
 	tmp->setFlag(QGraphicsItem::ItemIsMovable, true);
 	scene_infomage->addItem(tmp);	
-	barError();
+	return barError();
 }
 
 void Infomager::on_pushButton_barMaskColor_clicked()
@@ -4238,43 +4510,110 @@ void Infomager::on_pushButton_barArea_clicked()
 	scene_infomage->refreshBackrop(filt_backdrop);
 }
 
+void Infomager::generateNeighborHt() {
+	std::vector<double> newHts;
+	std::vector<double> randNos;
+
+	double maxHt = 0;
+
+	for (int j = 0; j < barMaskHeights.size(); j++)
+	{
+		if (barMaskHeights[j] > maxHt) {
+			maxHt = barMaskHeights[j];
+		}
+	}
+
+	double newMaxHt = 0;
+
+	for (int i = 0; i < barMaskHeights.size(); i++) {
+		double rNo = ((double)rand() / (RAND_MAX)) * (maxHt * 15/100);
+		newHts.push_back(barMaskHeights[i] + rNo);
+		if (newHts[i] > newMaxHt) {
+			newMaxHt = newHts[i];
+		}
+	}
+	
+	double rmin = 0;
+	double rmax = newMaxHt;
+	double tmin = 0;
+	double tmax = maxHt;
+
+	for (int i = 0; i < newHts.size(); i++) {
+		newHts[i] = tmin + (newHts[i] - rmin) * (tmax - tmin) / (rmax - rmin);
+	}	
+	
+	for (int i = 0; i < barMaskHeights.size(); i++) {
+		barMaskHeights[i] = newHts[i];
+		//QMessageBox::information(0, "info", QString("Rand: %1").arg(newAngles[i]));
+	}
+}
+
 void Infomager::optimizeBar() {
-	double old_cost = computePieAngles();
+	double old_cost = 0.0;
+	scene_infomage->removePieLabels();
+	for (int i = 0; i < barMasksSet.size(); i++)
+	{
+		if (barMasksSet[i])
+		{
+			old_cost = this->fillBarChart(i);
+		}
+	}	
 	double T = 1.0;
 	double T_min = 0.00001;
 	double alpha = 0.9;
-	std::vector<double> curr_hts = angles;
+	std::vector<double> curr_hts = barMaskHeights;
 	while (T > T_min) {
 		int i = 1;
-		int j = 1;
+		int j = 1;	
 		while (i <= 200 & j <= 200) {
-			generateNeighborAngles();
-			double new_cost = computePieAngles();
+			generateNeighborHt();
+			double new_cost = 0;
+			scene_infomage->removePieLabels();
+			for (int i = 0; i < barMasksSet.size(); i++)
+			{
+				if (barMasksSet[i])
+				{
+					new_cost = this->fillBarChart(i);
+				}
+			}
 			double ap = acceptance_probability(old_cost, new_cost, T);
 			//QMessageBox::information(0, "info", QString("Optimize %1").arg(ap));
 			double r = ((double)rand() / (RAND_MAX)) + 0.00001;
+			
 			if (ap > r) {
 				char buffer[100];
-				sprintf_s(buffer, "check it out: %f\n", (new_cost - old_cost));
+				sprintf_s(buffer, "check it out: %f prob: %f\n", (new_cost - old_cost), ap);
 				OutputDebugStringA(buffer);
-				curr_hts = angles;
+				curr_hts = barMaskHeights;
 				old_cost = new_cost;
 				i += 1;
 				j = 1;
 			}
 			else {
-				angles = curr_hts;
+				barMaskHeights = curr_hts;
 				j += 1;
 			}
 		}
-		//ui.label_pie_avg_err->setText(QString("Avg: %1").arg(old_cost));
-		//QMessageBox::information(0, "info", QString("Optimize %1").arg(old_cost));
 		T = T*alpha;
 	}
 	QMessageBox::information(0, "info", QString("Optimize done"));
 	//ui.label_pie_avg_err->setText(QString("Avg: %1").arg(old_cost));
-	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());
+	//QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillBarChart(), QImage::Format_RGB888).rgbSwapped());
+	//scene_infomage->refreshBackrop(pix_viz);
+
+	scene_infomage->setCurrentBackdrop(filtimg);
+	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(scene_infomage->getCurrentBackdrop(), QImage::Format_RGB888).rgbSwapped());
 	scene_infomage->refreshBackrop(pix_viz);
+	scene_infomage->removePieLabels();
+	for (int i = 0; i < barMasksSet.size(); i++)
+	{
+		if (barMasksSet[i])
+		{
+			this->fillBarChart(i);
+		}
+	}
+	QPixmap filt_backdrop = QPixmap::fromImage(mat_to_qimage_ref(scene_infomage->getCurrentBackdrop(), QImage::Format_RGB888).rgbSwapped());
+	scene_infomage->refreshBackrop(filt_backdrop);
 }
 
 //Window Handling

@@ -41,6 +41,8 @@
 #include <fstream>
 #include <string>
 
+
+
 class Infomager : public QMainWindow
 {
 	Q_OBJECT
@@ -52,7 +54,7 @@ public:
 	enum ChartType { None, Pie, Line, Bar };	
 	enum PieType { Rad, Area, OverLay, Arc };
 	enum DivType { Radial, Horizontal, Vertical };
-	enum BarType { BarArea, BarHeight };
+	enum BarType { BarArea, BarHeight, BarOptimize };
 	
 private:
 	Ui::InfomagerClass ui;
@@ -88,7 +90,7 @@ private:
 	///Functions
 	void linearReg();
 	void avgSlope();
-	void barError();
+	double barError();
 	
 	//Title
 	TitleTextItem * chartTitle;
@@ -123,8 +125,12 @@ private:
 	double computePieAngles();
 	cv::Mat fillPie();
 	void optimizePie();
+	void optimizeHorizontal();
+	void optimizeVertical();
 	double computePieError();
 	void generateNeighborAngles();
+	void generateNeighborHorDiv();
+	void generateNeighborVerDiv();
 	double acceptance_probability(double old_cost, double new_cost, double T);
 	
 	void fillSingleObject();
@@ -166,9 +172,11 @@ private:
 	std::vector<double> barMaskAreas;
 	std::vector<double> barMaskHeights;
 	std::vector<bool> barMasksSet;
+	std::vector<double> barHeights;
 	///Functions
 	void drawBarChart();
-	void fillBarChart(int idx);
+	double fillBarChart(int idx);
+	void generateNeighborHt();
 	void optimizeBar();
 	void optimzeAspectRatio(bool isBar);
 
