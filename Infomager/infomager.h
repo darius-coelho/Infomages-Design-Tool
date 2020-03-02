@@ -127,10 +127,9 @@ private:
 	void optimizePie();
 	void optimizeHorizontal();
 	void optimizeVertical();
-	double computePieError();
-	void generateNeighborAngles();
-	void generateNeighborHorDiv();
-	void generateNeighborVerDiv();
+	void generateNeighborAngles(std::vector<double> old_angles);
+	void generateNeighborHorDiv(std::vector<double> old_angles);
+	void generateNeighborVerDiv(std::vector<double> old_angles);
 	double acceptance_probability(double old_cost, double new_cost, double T);
 	
 	void fillSingleObject();
