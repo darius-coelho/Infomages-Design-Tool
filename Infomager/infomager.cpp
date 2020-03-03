@@ -76,6 +76,7 @@ Infomager::Infomager(QWidget *parent)
 
 	//Bar Chart Init
 	barType = BarHeight;
+	barDirection = BarVerti;
 	ui.label_barArea->setStyleSheet("background: rgb(65, 65, 65);");
 	ui.label_barLength->setStyleSheet("background: rgb(240, 240, 240);");
 	barThick = 1;
@@ -1366,6 +1367,18 @@ void Infomager::on_pushButton_fillHori_clicked() {
 	ui.label_errorPin4->setGeometry(0, 121, 4, 22);
 
 	this->fillSingleObject();
+}
+
+void Infomager::on_pushButton_fillBarHori_clicked() {
+	barDirection = BarHori;
+	ui.label_fillHori_2->setStyleSheet("background: rgb(240, 240, 240);");
+	ui.label_fillVerti_2->setStyleSheet("background: rgb(65, 65, 65);");
+}
+
+void Infomager::on_pushButton_fillBarVerti_clicked() {
+	barDirection = BarVerti;
+	ui.label_fillHori_2->setStyleSheet("background: rgb(65, 65, 65);");
+	ui.label_fillVerti_2->setStyleSheet("background: rgb(240, 240, 240);");
 }
 
 void Infomager::fillSingleObject() {
@@ -4177,78 +4190,33 @@ double Infomager::fillBarChart(int idx)
 	cv::Point labelPos(boundRect[b].x, 10);
 
 	//Compute fill amount
-	if (barType == BarHeight) {
-		//Based on height
-		double yMin = ui.doubleSpinBox_yMinBarFill->value();
-		double yMax = ui.doubleSpinBox_yMaxBarFill->value();
+	if (barDirection == BarVerti) {
+		if (barType == BarHeight) {
+			//Based on height
+			double yMin = ui.doubleSpinBox_yMinBarFill->value();
+			double yMax = ui.doubleSpinBox_yMaxBarFill->value();
 
-		int top = boundRect[b].y + boundRect[b].height - ((t_val[idx] / t_valMax) * boundRect[b].height);
-		if (!barPercentage) {
-			top = barFillYMax - (((t_val[idx] - yMin)/ (yMax - yMin)) * (barFillYMax - barFillYMin));
-		}
-		cv::Point p1(boundRect[b].x, top);
-		cv::Point p2(boundRect[b].x + boundRect[b].width, boundRect[b].y + boundRect[b].height);
-		labelPos = p1;
-		barMaskHeights[idx] = (boundRect[b].y + boundRect[b].height) - top;
-
-		rectangle(drawing, p1, p2, cv::Scalar(barColor.blue(), barColor.green(), barColor.red()), -2, 8, 0);
-		drawing.copyTo(drawing_tmp, src2);
-
-		src2 = cv::Mat::zeros(src2.size(), CV_8UC1);
-		cvtColor(drawing_tmp, src2, CV_BGR2GRAY);
-
-		cv::Mat threshold_output2;
-		std::vector<std::vector<cv::Point> > contours2;
-		std::vector<cv::Vec4i> hierarchy2;
-
-		// Detect edges using Threshold
-		threshold(src2, threshold_output2, thresh, 255, cv::THRESH_BINARY);
-		// Find contours
-		findContours(threshold_output2, contours2, hierarchy2, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
-
-		barMaskAreas[idx] = -1.0;
-		for (int i = 0; i < contours2.size(); i++)
-		{
-			if (barMaskAreas[idx] < contourArea(contours2[i]))
-			{
-				barMaskAreas[idx] = contourArea(contours2[i]);
+			int top = boundRect[b].y + boundRect[b].height - ((t_val[idx] / t_valMax) * boundRect[b].height);
+			if (!barPercentage) {
+				top = barFillYMax - (((t_val[idx] - yMin) / (yMax - yMin)) * (barFillYMax - barFillYMin));
 			}
-		}
-	}
-	else if (barType == BarArea) {
-		//Based on Area
-		double mux = 0.005;
-		int top = boundRect[b].y + boundRect[b].height - (mux * boundRect[b].height);
-		double ht = 1;
-		double area = contourArea(contours[b]);
-		double cutOff = (t_val[idx] / t_valMax);
-		double yMin = ui.doubleSpinBox_yMinBarFill->value();
-		double yMax = ui.doubleSpinBox_yMaxBarFill->value();
-		if (!barPercentage) {
-			cutOff = ((t_val[idx] - yMin) / (yMax - yMin));
-		}
-		barMaskAreas[idx] = -1.0;
-		while ((barMaskAreas[idx]/ area) <  cutOff && top >= 0 ) {			
-			drawing_tmp = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
-			drawing = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
 			cv::Point p1(boundRect[b].x, top);
 			cv::Point p2(boundRect[b].x + boundRect[b].width, boundRect[b].y + boundRect[b].height);
 			labelPos = p1;
 			barMaskHeights[idx] = (boundRect[b].y + boundRect[b].height) - top;
+
 			rectangle(drawing, p1, p2, cv::Scalar(barColor.blue(), barColor.green(), barColor.red()), -2, 8, 0);
 			drawing.copyTo(drawing_tmp, src2);
 
-			//Based on Area		
-			
-			cv::Mat src3 = cv::Mat::zeros(src2.size(), CV_8UC1);
-			cvtColor(drawing_tmp, src3, CV_BGR2GRAY);
+			src2 = cv::Mat::zeros(src2.size(), CV_8UC1);
+			cvtColor(drawing_tmp, src2, CV_BGR2GRAY);
 
 			cv::Mat threshold_output2;
 			std::vector<std::vector<cv::Point> > contours2;
 			std::vector<cv::Vec4i> hierarchy2;
 
 			// Detect edges using Threshold
-			threshold(src3, threshold_output2, thresh, 255, cv::THRESH_BINARY);
+			threshold(src2, threshold_output2, thresh, 255, cv::THRESH_BINARY);
 			// Find contours
 			findContours(threshold_output2, contours2, hierarchy2, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 
@@ -4260,45 +4228,206 @@ double Infomager::fillBarChart(int idx)
 					barMaskAreas[idx] = contourArea(contours2[i]);
 				}
 			}
-			mux = mux + 0.005;
-			top = boundRect[b].y + boundRect[b].height - (mux * boundRect[b].height);
 		}
+		else if (barType == BarArea) {
+			//Based on Area
+			double mux = 0.005;
+			int top = boundRect[b].y + boundRect[b].height - (mux * boundRect[b].height);
+			double ht = 1;
+			double area = contourArea(contours[b]);
+			double cutOff = (t_val[idx] / t_valMax);
+			double yMin = ui.doubleSpinBox_yMinBarFill->value();
+			double yMax = ui.doubleSpinBox_yMaxBarFill->value();
+			if (!barPercentage) {
+				cutOff = ((t_val[idx] - yMin) / (yMax - yMin));
+			}
+			barMaskAreas[idx] = -1.0;
+			while ((barMaskAreas[idx] / area) < cutOff && top >= 0) {
+				drawing_tmp = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
+				drawing = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
+				cv::Point p1(boundRect[b].x, top);
+				cv::Point p2(boundRect[b].x + boundRect[b].width, boundRect[b].y + boundRect[b].height);
+				labelPos = p1;
+				barMaskHeights[idx] = (boundRect[b].y + boundRect[b].height) - top;
+				rectangle(drawing, p1, p2, cv::Scalar(barColor.blue(), barColor.green(), barColor.red()), -2, 8, 0);
+				drawing.copyTo(drawing_tmp, src2);
 
-	}
-	else if (barType == BarOptimize) {
-		//Based on mask height
+				//Based on Area		
 
-		int top = boundRect[b].y + boundRect[b].height - barMaskHeights[idx];
-		
-		cv::Point p1(boundRect[b].x, top);
-		cv::Point p2(boundRect[b].x + boundRect[b].width, boundRect[b].y + boundRect[b].height);
-		labelPos = p1;
+				cv::Mat src3 = cv::Mat::zeros(src2.size(), CV_8UC1);
+				cvtColor(drawing_tmp, src3, CV_BGR2GRAY);
 
-		rectangle(drawing, p1, p2, cv::Scalar(barColor.blue(), barColor.green(), barColor.red()), -2, 8, 0);
-		drawing.copyTo(drawing_tmp, src2);
+				cv::Mat threshold_output2;
+				std::vector<std::vector<cv::Point> > contours2;
+				std::vector<cv::Vec4i> hierarchy2;
 
-		src2 = cv::Mat::zeros(src2.size(), CV_8UC1);
-		cvtColor(drawing_tmp, src2, CV_BGR2GRAY);
+				// Detect edges using Threshold
+				threshold(src3, threshold_output2, thresh, 255, cv::THRESH_BINARY);
+				// Find contours
+				findContours(threshold_output2, contours2, hierarchy2, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 
-		cv::Mat threshold_output2;
-		std::vector<std::vector<cv::Point> > contours2;
-		std::vector<cv::Vec4i> hierarchy2;
+				barMaskAreas[idx] = -1.0;
+				for (int i = 0; i < contours2.size(); i++)
+				{
+					if (barMaskAreas[idx] < contourArea(contours2[i]))
+					{
+						barMaskAreas[idx] = contourArea(contours2[i]);
+					}
+				}
+				mux = mux + 0.005;
+				top = boundRect[b].y + boundRect[b].height - (mux * boundRect[b].height);
+			}
 
-		// Detect edges using Threshold
-		threshold(src2, threshold_output2, thresh, 255, cv::THRESH_BINARY);
-		// Find contours
-		findContours(threshold_output2, contours2, hierarchy2, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+		}
+		else if (barType == BarOptimize) {
+			//Based on mask height
 
-		barMaskAreas[idx] = -1.0;
-		for (int i = 0; i < contours2.size(); i++)
-		{
-			if (barMaskAreas[idx] < contourArea(contours2[i]))
+			int top = boundRect[b].y + boundRect[b].height - barMaskHeights[idx];
+
+			cv::Point p1(boundRect[b].x, top);
+			cv::Point p2(boundRect[b].x + boundRect[b].width, boundRect[b].y + boundRect[b].height);
+			labelPos = p1;
+
+			rectangle(drawing, p1, p2, cv::Scalar(barColor.blue(), barColor.green(), barColor.red()), -2, 8, 0);
+			drawing.copyTo(drawing_tmp, src2);
+
+			src2 = cv::Mat::zeros(src2.size(), CV_8UC1);
+			cvtColor(drawing_tmp, src2, CV_BGR2GRAY);
+
+			cv::Mat threshold_output2;
+			std::vector<std::vector<cv::Point> > contours2;
+			std::vector<cv::Vec4i> hierarchy2;
+
+			// Detect edges using Threshold
+			threshold(src2, threshold_output2, thresh, 255, cv::THRESH_BINARY);
+			// Find contours
+			findContours(threshold_output2, contours2, hierarchy2, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+
+			barMaskAreas[idx] = -1.0;
+			for (int i = 0; i < contours2.size(); i++)
 			{
-				barMaskAreas[idx] = contourArea(contours2[i]);
+				if (barMaskAreas[idx] < contourArea(contours2[i]))
+				{
+					barMaskAreas[idx] = contourArea(contours2[i]);
+				}
 			}
 		}
 	}
+	else {
+		if (barType == BarHeight) {
+			//Based on height
 
+			int right = boundRect[b].x + ((t_val[idx] / t_valMax) * boundRect[b].width);
+		
+			cv::Point p1(boundRect[b].x, boundRect[b].y);
+			cv::Point p2(right, boundRect[b].y + boundRect[b].height);
+			labelPos = p1;
+			barMaskHeights[idx] = (t_val[idx] / t_valMax) * boundRect[b].width;
+
+			rectangle(drawing, p1, p2, cv::Scalar(barColor.blue(), barColor.green(), barColor.red()), -2, 8, 0);
+			drawing.copyTo(drawing_tmp, src2);
+
+			src2 = cv::Mat::zeros(src2.size(), CV_8UC1);
+			cvtColor(drawing_tmp, src2, CV_BGR2GRAY);
+
+			cv::Mat threshold_output2;
+			std::vector<std::vector<cv::Point> > contours2;
+			std::vector<cv::Vec4i> hierarchy2;
+
+			// Detect edges using Threshold
+			threshold(src2, threshold_output2, thresh, 255, cv::THRESH_BINARY);
+			// Find contours
+			findContours(threshold_output2, contours2, hierarchy2, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+
+			barMaskAreas[idx] = -1.0;
+			for (int i = 0; i < contours2.size(); i++)
+			{
+				if (barMaskAreas[idx] < contourArea(contours2[i]))
+				{
+					barMaskAreas[idx] = contourArea(contours2[i]);
+				}
+			}
+		}
+		else if (barType == BarArea) {
+			//Based on Area
+			double mux = 0.005;
+			int right = boundRect[b].x + (mux * boundRect[b].width);
+			double ht = 1;
+			double area = contourArea(contours[b]);
+			double cutOff = (t_val[idx] / t_valMax);
+		
+			barMaskAreas[idx] = -1.0;
+			while ((barMaskAreas[idx] / area) < cutOff && right >= 0) {
+				drawing_tmp = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
+				drawing = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
+				cv::Point p1(boundRect[b].x, boundRect[b].y);
+				cv::Point p2(right, boundRect[b].y + boundRect[b].height);
+				labelPos = p1;
+				barMaskHeights[idx] = right - boundRect[b].x;
+				rectangle(drawing, p1, p2, cv::Scalar(barColor.blue(), barColor.green(), barColor.red()), -2, 8, 0);
+				drawing.copyTo(drawing_tmp, src2);
+
+				//Based on Area		
+
+				cv::Mat src3 = cv::Mat::zeros(src2.size(), CV_8UC1);
+				cvtColor(drawing_tmp, src3, CV_BGR2GRAY);
+
+				cv::Mat threshold_output2;
+				std::vector<std::vector<cv::Point> > contours2;
+				std::vector<cv::Vec4i> hierarchy2;
+
+				// Detect edges using Threshold
+				threshold(src3, threshold_output2, thresh, 255, cv::THRESH_BINARY);
+				// Find contours
+				findContours(threshold_output2, contours2, hierarchy2, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+
+				barMaskAreas[idx] = -1.0;
+				for (int i = 0; i < contours2.size(); i++)
+				{
+					if (barMaskAreas[idx] < contourArea(contours2[i]))
+					{
+						barMaskAreas[idx] = contourArea(contours2[i]);
+					}
+				}
+				mux = mux + 0.005;
+				right = boundRect[b].x + (mux * boundRect[b].width);
+			}
+
+		}
+		else if (barType == BarOptimize) {
+			//Based on mask height
+
+			int right = boundRect[b].x + barMaskHeights[idx];
+
+			cv::Point p1(boundRect[b].x, boundRect[b].y);
+			cv::Point p2(right, boundRect[b].y + boundRect[b].height);
+			labelPos = p1;
+
+			rectangle(drawing, p1, p2, cv::Scalar(barColor.blue(), barColor.green(), barColor.red()), -2, 8, 0);
+			drawing.copyTo(drawing_tmp, src2);
+
+			src2 = cv::Mat::zeros(src2.size(), CV_8UC1);
+			cvtColor(drawing_tmp, src2, CV_BGR2GRAY);
+
+			cv::Mat threshold_output2;
+			std::vector<std::vector<cv::Point> > contours2;
+			std::vector<cv::Vec4i> hierarchy2;
+
+			// Detect edges using Threshold
+			threshold(src2, threshold_output2, thresh, 255, cv::THRESH_BINARY);
+			// Find contours
+			findContours(threshold_output2, contours2, hierarchy2, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+
+			barMaskAreas[idx] = -1.0;
+			for (int i = 0; i < contours2.size(); i++)
+			{
+				if (barMaskAreas[idx] < contourArea(contours2[i]))
+				{
+					barMaskAreas[idx] = contourArea(contours2[i]);
+				}
+			}
+		}
+	}
 	//Get Background Image
 	cv::Mat image(filtimg.size(), CV_8UC3);
 	scene_infomage->getCurrentBackdrop().copyTo(image);

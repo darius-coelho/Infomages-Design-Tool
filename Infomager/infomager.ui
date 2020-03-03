@@ -18,7 +18,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>../../../../../../../.designer/logo.png</normaloff>../../../../../../../.designer/logo.png</iconset>
+    <normaloff>../../../../../.designer/logo.png</normaloff>../../../../../.designer/logo.png</iconset>
   </property>
   <property name="layoutDirection">
    <enum>Qt::LeftToRight</enum>
@@ -690,7 +690,7 @@ QPushButton#pushButton_close:pressed {
      <rect>
       <x>1170</x>
       <y>70</y>
-      <width>300</width>
+      <width>320</width>
       <height>691</height>
      </rect>
     </property>
@@ -1232,7 +1232,7 @@ QPushButton#pushButton_barLength:pressed {
      <widget class="QLabel" name="label_fillHori_2">
       <property name="geometry">
        <rect>
-        <x>83</x>
+        <x>147</x>
         <y>275</y>
         <width>78</width>
         <height>32</height>
@@ -1244,7 +1244,7 @@ QPushButton#pushButton_barLength:pressed {
        </font>
       </property>
       <property name="styleSheet">
-       <string notr="true">QLabel { background-color : white; }</string>
+       <string notr="true">QLabel { background-color : rgb(72, 72, 72); }</string>
       </property>
       <property name="text">
        <string/>
@@ -1253,7 +1253,7 @@ QPushButton#pushButton_barLength:pressed {
      <widget class="QPushButton" name="pushButton_fillBarHori">
       <property name="geometry">
        <rect>
-        <x>87</x>
+        <x>150</x>
         <y>279</y>
         <width>71</width>
         <height>24</height>
@@ -1290,7 +1290,7 @@ QPushButton#pushButton_fillBarHori:pressed {
      <widget class="QLabel" name="label_fillVerti_2">
       <property name="geometry">
        <rect>
-        <x>160</x>
+        <x>83</x>
         <y>275</y>
         <width>63</width>
         <height>32</height>
@@ -1302,7 +1302,7 @@ QPushButton#pushButton_fillBarHori:pressed {
        </font>
       </property>
       <property name="styleSheet">
-       <string notr="true">QLabel { background-color : rgb(72, 72, 72); }</string>
+       <string notr="true">QLabel { background-color :white; }</string>
       </property>
       <property name="text">
        <string/>
@@ -1311,7 +1311,7 @@ QPushButton#pushButton_fillBarHori:pressed {
      <widget class="QPushButton" name="pushButton_fillBarVerti">
       <property name="geometry">
        <rect>
-        <x>164</x>
+        <x>87</x>
         <y>279</y>
         <width>55</width>
         <height>24</height>

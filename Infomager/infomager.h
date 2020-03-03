@@ -55,6 +55,7 @@ public:
 	enum PieType { Rad, Area, OverLay, Arc };
 	enum DivType { Radial, Horizontal, Vertical };
 	enum BarType { BarArea, BarHeight, BarOptimize };
+	enum BarDirection { BarHori, BarVerti };
 	
 private:
 	Ui::InfomagerClass ui;
@@ -164,6 +165,7 @@ private:
 	bool barOverlay;
 	bool barPercentage;
 	BarType barType;
+	BarDirection barDirection;
 	int barMaskIdx;
 	double barYMin, barYMax;
 	double barFillYMin, barFillYMax;
@@ -246,6 +248,8 @@ private slots:
 	void on_pushButton_fillVerti_clicked();
 	void on_pushButton_fillHori_clicked();	
 
+	void on_pushButton_fillBarHori_clicked();
+	void on_pushButton_fillBarVerti_clicked();
 
 	//Line Chart Controls
 	void on_pushButton_lineOverlay_clicked();
