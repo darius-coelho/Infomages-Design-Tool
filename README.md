@@ -20,9 +20,9 @@ Additionally, the tool makes use of the Google Custom Search API to retrieve ima
 
 ## Data Files Supported
 
-MemeViz accepts data in the form of .csv files. 
+The tool accepts data in the form of .csv files. 
 
-The data must be a table containing one or two columns. If a one column table is used and the data is numeric then we use the indices as lablels but if the data is categorical we use the counts of the categories as the numerical data. For two column tables we expect that one columne contains the labels and the second the numerical values.
+The data must be a table containing one or two columns. If a one column table is used and the data is numeric then we use the indices as lablels but if the data is categorical we use the counts of the categories as the numerical data. For two column tables we expect that one column contains the labels and the second the numerical values.
 
 ## Example Results
 
