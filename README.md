@@ -23,3 +23,13 @@ Additionally, the tool makes use of the Google Custom Search API to retrieve ima
 MemeViz accepts data in the form of .csv files. 
 
 The data must be a table containing one or two columns. If a one column table is used and the data is numeric then we use the indices as lablels but if the data is categorical we use the counts of the categories as the numerical data. For two column tables we expect that one columne contains the labels and the second the numerical values.
+
+## Example Results
+
+![alt text](https://raw.githubusercontent.com/darius-coelho/Infomages-Design-Tool/master/Infomage%20Examples/pie1.png?token=AFSIQZZNNUIW4MGHHYAHUZS6M7HME)
+
+![alt text](https://raw.githubusercontent.com/darius-coelho/Infomages-Design-Tool/master/Infomage%20Examples/pie2.png?token=AFSIQZZXZBPDJIWUJFOWLNK6M7HNO)
+
+![alt text](https://raw.githubusercontent.com/darius-coelho/Infomages-Design-Tool/master/Infomage%20Examples/bar1.png?token=AFSIQZ3PXB67YSY4JBX7DSK6M7HCQ)
+
+![alt text](https://raw.githubusercontent.com/darius-coelho/Infomages-Design-Tool/master/Infomage%20Examples/bar2.png?token=AFSIQZ47HKRLAFGMPLGFVAC6M7HO4)
