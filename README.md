@@ -32,4 +32,4 @@ The data must be a table containing one or two columns. If a one column table is
 
 ![alt text](https://raw.githubusercontent.com/darius-coelho/Infomages-Design-Tool/master/Infomage%20Examples/bar1.png?token=AFSIQZ3PXB67YSY4JBX7DSK6M7HCQ)
 
-![alt text](https://raw.githubusercontent.com/darius-coelho/Infomages-Design-Tool/master/Infomage%20Examples/bar2.png?token=AFSIQZ47HKRLAFGMPLGFVAC6M7HO4)
+![alt text](https://raw.githubusercontent.com/darius-coelho/Infomages-Design-Tool/master/Infomage%20Examples/bar2.png?token=AFSIQZZZQGZRLNOTPSCHAPC6M7H3M)
