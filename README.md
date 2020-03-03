@@ -24,4 +24,12 @@ MemeViz accepts data in the form of .csv files.
 
 The data must be a table containing one or two columns. If a one column table is used and the data is numeric then we use the indices as lablels but if the data is categorical we use the counts of the categories as the numerical data. For two column tables we expect that one columne contains the labels and the second the numerical values.
 
-![alt text](https://raw.githubusercontent.com/darius-coelho/Infomages-Design-Tool/master/Infomage%20Examples/bar1.png?token=AFSIQZ3PXB67YSY4JBX7DSK6M7HCQ)
+## Example Results
+
+![alt text](https://raw.githubusercontent.com/darius-coelho/Infomages-Design-Tool/master/Infomage%20Examples/pie1.png)
+
+![alt text](https://raw.githubusercontent.com/darius-coelho/Infomages-Design-Tool/master/Infomage%20Examples/pie2.png)
+
+![alt text](https://raw.githubusercontent.com/darius-coelho/Infomages-Design-Tool/master/Infomage%20Examples/bar1.png)
+
+![alt text](https://raw.githubusercontent.com/darius-coelho/Infomages-Design-Tool/master/Infomage%20Examples/bar2.png)
