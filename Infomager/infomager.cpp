@@ -230,7 +230,7 @@ void Infomager::imageSearch()
 	// the HTTP request
 	QString query = QString::fromStdString(t_title);
 	query.replace(" ", "+");	
-	QNetworkRequest reqGoogle(QUrl(QString("https://www.googleapis.com/customsearch/v1?q=%1&cx=003390134866451521350%3Apuwyqnbwa6q&searchType=image&key=AIzaSyBXz0Crh5JnAL0FDzDXHNq7Kjjsv93Chds").arg(query)));
+	QNetworkRequest reqGoogle(QUrl(QString("Add you google api link here").arg(query)));
 	QNetworkReply *replyGoogle = mgrGoogle.get(reqGoogle);
 	eventLoopGoggle.exec(); // blocks stack until "finished()" has been called
 
@@ -243,6 +243,7 @@ void Infomager::imageSearch()
 		//HTTP request failure
 		QMessageBox::information(0, "info", QString("Google Request Failed: %1").arg(replyGoogle->errorString()));
 		delete replyGoogle;
+		return;
 	}
 	
 	//****************READ JSON REPLY****************
