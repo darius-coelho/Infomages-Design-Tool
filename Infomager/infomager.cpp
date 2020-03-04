@@ -230,7 +230,7 @@ void Infomager::imageSearch()
 	// the HTTP request
 	QString query = QString::fromStdString(t_title);
 	query.replace(" ", "+");	
-	QNetworkRequest reqGoogle(QUrl(QString("Add you google api link here").arg(query)));
+	//QNetworkRequest reqGoogle(QUrl(QString("Add you google api link here").arg(query)));	
 	QNetworkReply *replyGoogle = mgrGoogle.get(reqGoogle);
 	eventLoopGoggle.exec(); // blocks stack until "finished()" has been called
 
@@ -1447,6 +1447,23 @@ void Infomager::on_pushButton_optimizeChart_clicked() {
 		double c3 = computePieAngles();
 		orig_rad_angles = angles;
 		max_cost = (c1 + c2 + c3) / 3;
+
+		max_change = 0;
+		for (int i = 0; i < orig_area_angles.size(); i++) {
+			if (abs(orig_area_angles[i] - orig_rad_angles[i]) > max_change) {
+				max_change = abs(orig_area_angles[i] - orig_rad_angles[i]);
+			}
+			if (abs(orig_area_angles[i] - orig_arc_angles[i]) > max_change) {
+				max_change = abs(orig_area_angles[i] - orig_arc_angles[i]);
+			}
+			if (abs(orig_rad_angles[i] - orig_arc_angles[i]) > max_change) {
+				max_change = abs(orig_rad_angles[i] - orig_arc_angles[i]);
+			}
+			if (abs(0.05*angles[i]) > max_change) {
+				max_change = abs(0.05*angles[i]);
+			}
+		}
+
 		optimize = true;
 		optimizePie();
 	}
@@ -1461,6 +1478,17 @@ void Infomager::on_pushButton_optimizeChart_clicked() {
 		double c2 = computeHorizontal();
 		orig_arc_angles = angles;
 		max_cost = c2; //(c1 + c2) / 2;
+		
+		max_change = 0;
+		for (int i = 0; i < orig_area_angles.size(); i++) {		
+			if (abs(orig_area_angles[i] - orig_arc_angles[i]) > max_change) {
+				max_change = abs(orig_area_angles[i] - orig_arc_angles[i]);
+			}		
+			if (abs(0.01*angles[i]) > max_change) {
+				max_change = abs(0.01*angles[i]);
+			}
+		}
+
 		optimize = true;
 		optimizeHorizontal();
 	}
@@ -1475,6 +1503,17 @@ void Infomager::on_pushButton_optimizeChart_clicked() {
 		double c2 = computeVertical();
 		orig_arc_angles = angles;
 		max_cost =  (c1 + c2) / 2;
+
+		max_change = 0;
+		for (int i = 0; i < orig_area_angles.size(); i++) {
+			if (abs(orig_area_angles[i] - orig_arc_angles[i]) > max_change) {
+				max_change = abs(orig_area_angles[i] - orig_arc_angles[i]);
+			}
+			if (abs(0.01*angles[i]) > max_change) {
+				max_change = abs(0.01*angles[i]);
+			}
+		}
+
 		optimize = true;
 		optimizeVertical();
 	}
@@ -2415,7 +2454,7 @@ void Infomager::generateNeighborAngles(std::vector<double> old_angles) {
 	std::vector<double> randNos;
 	newAngles.push_back(old_angles[0]);
 	for (int i = 1; i < old_angles.size() - 1; i++) {
-		double rNo = ((double)rand() / (RAND_MAX)) * 10 - 5;
+		double rNo = (((double)rand() / (RAND_MAX)) * max_change * 2) - max_change;
 		newAngles.push_back(old_angles[i] + rNo);
 	}
 
@@ -2775,7 +2814,8 @@ void Infomager::generateNeighborHorDiv(std::vector<double> old_angles) {
 	std::vector<double> randNos;
 	newAngles.push_back(old_angles[0]);
 	for (int i = 1; i < old_angles.size() - 1; i++) {
-		double rNo = ((double)rand() / (RAND_MAX)) * 16 - 8;
+		//double rNo = ((double)rand() / (RAND_MAX)) * 16 - 8;
+		double rNo = (((double)rand() / (RAND_MAX)) * max_change * 2) - max_change;
 		newAngles.push_back(old_angles[i] + rNo);
 	}
 
@@ -3140,22 +3180,12 @@ cv::Mat Infomager::fillVertical()
 void Infomager::generateNeighborVerDiv(std::vector<double> old_angles) {
 	std::vector<double> newAngles;
 	std::vector<double> randNos;
-	double randTot = 0.0;
-	double remove = ((double)rand() / (RAND_MAX)) * 10;
-	newAngles.push_back(angles[0]);
-	for (int i = 1; i < angles.size() - 1; i++) {
-		int rNo = rand() % 100 + 1;
-		randTot = randTot + rNo;
-		randNos.push_back(rNo);
-		newAngles.push_back(angles[i] - remove);
+	newAngles.push_back(old_angles[0]);
+	for (int i = 1; i < old_angles.size() - 1; i++) {
+		//double rNo = ((double)rand() / (RAND_MAX)) * 16 - 8;
+		double rNo = (((double)rand() / (RAND_MAX)) * max_change * 2) - max_change;
+		newAngles.push_back(old_angles[i] + rNo);
 	}
-
-	double reqdTot = (angles.size() - 2) * remove;
-
-	for (int i = 1; i < newAngles.size(); i++) {
-		newAngles[i] = newAngles[i] + (randNos[i] * reqdTot / randTot);
-	}
-	newAngles.push_back(angles[angles.size() - 1]);
 
 	for (int i = 0; i < angles.size(); i++) {
 		angles[i] = newAngles[i];

@@ -121,6 +121,7 @@ private:
 	QList<QPushButton* > pieColorButtons;
 	bool optimize = false;
 	double max_cost;
+	double max_change;
 	///Functions
 	void drawPieChart();
 	double computePieAngles();
