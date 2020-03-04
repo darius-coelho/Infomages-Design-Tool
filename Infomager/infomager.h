@@ -139,6 +139,9 @@ private:
 	double computeVertical();
 	cv::Mat fillVertical();
 
+	void drawOverlayPieChart();
+	void findHoughCircle();
+
 
 	//Line Chart
 	QtCharts::QLineSeries *lineSeries;
@@ -239,6 +242,10 @@ private slots:
 	void on_pushButton_pieColor_14_clicked();
 	void on_pushButton_pieColor_15_clicked();
 
+
+	void on_pushButton_pieOverlay_clicked();	
+	void on_spinBox_pieChartRadius_valueChanged();
+	void on_horizontalSlider_pieChartRot_valueChanged();
 
 	//Technique Select
 	void on_pushButton_FillStyle_clicked();

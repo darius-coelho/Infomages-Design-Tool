@@ -202,6 +202,14 @@ void Infomager::on_loadButtonImg_clicked()
 				linearReg();
 			}
 		}
+		if (chartType == Pie & pieType == OverLay)
+		{
+			if (dataLoaded)
+			{
+				this->drawOverlayPieChart();
+				findHoughCircle();
+			}
+		}
 	}	
 }
 
@@ -355,6 +363,14 @@ void Infomager::on_listWidget_itemClicked(QListWidgetItem * item)
 					if (dataLoaded & loaded_img)
 					{
 						linearReg();
+					}
+				}
+				if (chartType == Pie & pieType == OverLay)
+				{
+					if (dataLoaded)
+					{
+						this->drawOverlayPieChart();
+						findHoughCircle();
 					}
 				}
 			}
@@ -513,7 +529,18 @@ void Infomager::on_loadButtonData_clicked()
 		}
 		else if (chartType == Pie)
 		{
-			this->drawPieChart();
+			if (pieType == OverLay)
+			{
+				if (dataLoaded)
+				{
+					this->drawOverlayPieChart();
+					findHoughCircle();
+				}
+			}
+			else {
+				this->drawPieChart();
+			}
+			
 		}
 		this->imageSearch();
 	}
@@ -1201,9 +1228,11 @@ void Infomager::on_pushButton_OverlayStyle_clicked()
 
 	ui.label_lineOverlay->setVisible(true);
 	ui.label_barOverlay->setVisible(false);
+	ui.label_pieOverlay->setVisible(false);
 
 	ui.groupBox_LineOverlay->setVisible(true);
 	ui.groupBox_BarOverlay->setVisible(false);
+	ui.groupBox_PieOverlay->setVisible(false);
 
 
 	ui.label_err1->setVisible(true);
@@ -3211,6 +3240,194 @@ double Infomager::acceptance_probability(double old_cost, double new_cost, doubl
 	return exp(-(new_cost - old_cost) / T);
 }
 
+
+//Pie Chart Overlay
+
+void Infomager::on_pushButton_pieOverlay_clicked()
+{
+	write_text_to_log_file("PieChartSelect\n");
+	chartType = Pie;
+	pieType = OverLay;
+
+	ui.label_lineOverlay->setVisible(false);
+	ui.label_barOverlay->setVisible(false);
+	ui.label_pieOverlay->setVisible(true);
+
+	ui.groupBox_LineOverlay->setVisible(false);
+	ui.groupBox_BarOverlay->setVisible(false);
+	ui.groupBox_PieOverlay->setVisible(true);
+
+	ui.label_err1->setVisible(true);
+	ui.label_err1->setText(QString("Angle:"));
+	ui.label_errVal1->setText(QString("0%"));
+	ui.label_errorPin1->setGeometry(0, 10, 4, 22);
+
+	ui.label_err2->setVisible(true);
+	ui.label_err2->setText(QString("Area:"));
+	ui.label_errVal2->setText(QString("0%"));
+	ui.label_errorPin2->setGeometry(0, 47, 4, 22);
+
+
+	ui.label_err3->setVisible(true);
+	ui.label_err3->setText(QString("Arc Length:"));
+	ui.label_errVal3->setVisible(false);
+	ui.label_errVal3->setText(QString("0%"));
+	ui.label_errorPin3->setVisible(false);
+	ui.label_errorPin3->setGeometry(0, 84, 4, 22);
+	ui.label_errorBar3->setVisible(false);
+
+
+	ui.label_err4->setVisible(true);
+	ui.label_err4->setText(QString("Avg.:"));
+	ui.label_errVal4->setText(QString("0%"));
+	ui.label_errorPin4->setGeometry(0, 121, 4, 22);
+
+	scene_infomage->removePieLabels();
+	if (loaded_img)
+	{
+		scene_infomage->setCurrentBackdrop(filtimg);
+		QPixmap filt_backdrop = QPixmap::fromImage(mat_to_qimage_ref(filtimg.clone(), QImage::Format_RGB888).rgbSwapped());
+		scene_infomage->refreshBackrop(filt_backdrop);
+	}
+
+	if (dataLoaded)
+	{
+		drawOverlayPieChart();
+		drawPieChart();
+	}
+}
+
+void Infomager::drawOverlayPieChart() {
+	if (chartAdded)
+	{
+		chartAdded = false;
+		scene_infomage->removeItem(chart);
+	}	
+		
+	//QT Charts Code
+	QtCharts::QPieSeries *series = new QtCharts::QPieSeries();
+
+	for (int i = 0; i < t_val.size(); i++)
+	{
+		series->append(QString::fromStdString(t_label[i]), t_val[i]);
+	}
+
+	series->setLabelsVisible(true);
+	series->setPieSize(0.7);
+	series->setPieStartAngle(ui.horizontalSlider_pieChartRot->value());
+	series->setPieEndAngle(360+ui.horizontalSlider_pieChartRot->value());
+
+	chart = new QtCharts::QChart();
+	chart->setPreferredSize(260, 180);
+	chart->addSeries(series);
+	chart->setAnimationOptions(QtCharts::QChart::NoAnimation);
+	chart->createDefaultAxes();
+	chart->setMargins(QMargins(0, 0, 0, 0));
+	chart->legend()->hide();
+	chart->setBackgroundVisible(false);
+	chart->setFont(textFont);
+	chart->setFlag(QGraphicsItem::ItemIsMovable, true);
+	chart->setFlag(QGraphicsItem::ItemIsSelectable, true);
+	chart->setZValue(999);
+	chart->setPos(QPoint(chartX, chartY));
+	scene_infomage->addItem(chart);
+
+	scene_infomage->addItem(chart);
+	chartAdded = true;	
+
+	findHoughCircle();
+}
+
+void Infomager::findHoughCircle() {
+
+	//***************Hough Lines***************
+	cv::Mat dst, color_dst;
+
+	cv::Canny(img, dst, 28, 240, 3);
+	cvtColor(dst, color_dst, CV_GRAY2BGR);
+
+	std::vector<cv::Vec3f> circles;
+	HoughCircles(dst, circles, CV_HOUGH_GRADIENT, 1, dst.rows / 10, 150, 80, 0, 0);
+
+	if (circles.size() > 0)
+	{
+		//Circles are sorted according to the vote in the accumulator in descending order so pick the first.
+		int radius = cvRound(circles[0][2]);
+		if (radius*1.5 > dst.cols / 2) {
+			radius = dst.cols / 1.5;
+		}
+		if (radius*1.5 > dst.rows / 2) {
+			radius = dst.rows / 1.5;
+		}
+
+		ui.spinBox_pieChartRadius->setValue(radius * 1.5);
+
+		chart->setPreferredSize(radius*3, radius*3);
+        chartX = circles[0][0] - radius*1.5;
+		chartY = circles[0][1] - radius*1.5;
+		chart->setPos(QPoint(chartX, chartY));
+
+		
+
+		
+	}
+	else {
+		if (dst.cols > dst.rows) {
+			ui.spinBox_pieChartRadius->setValue(dst.rows / 25);
+			chart->setPreferredSize(dst.rows / 2, dst.rows / 2);
+
+			chartX = dst.cols / 2 - dst.rows / 4;
+			chartY = dst.rows / 2 - dst.rows / 4;
+
+			chart->setPos(QPoint(chartX, chartY));
+		}
+		else {
+			ui.spinBox_pieChartRadius->setValue(dst.cols / 2);
+			chart->setPreferredSize(dst.cols / 2, dst.cols / 2);
+
+			chartX = dst.cols / 2 - dst.cols / 4;
+			chartY = dst.rows / 2 - dst.cols / 4;
+
+			chart->setPos(QPoint(chartX, chartY));
+		}	
+	}
+}
+
+void Infomager::on_spinBox_pieChartRadius_valueChanged()
+{
+	if (chartAdded)
+	{		
+		scene_infomage->removeItem(chart);
+		chart->setPreferredSize(ui.spinBox_pieChartRadius->value(), ui.spinBox_pieChartRadius->value());
+		scene_infomage->addItem(chart);	
+	}
+}
+
+void Infomager::on_horizontalSlider_pieChartRot_valueChanged()
+{
+	if (chartAdded)
+	{
+		scene_infomage->removeItem(chart);
+		//QT Charts Code
+		QtCharts::QPieSeries *series = new QtCharts::QPieSeries();
+
+		for (int i = 0; i < t_val.size(); i++)
+		{
+			series->append(QString::fromStdString(t_label[i]), t_val[i]);
+		}
+
+		series->setLabelsVisible(true);
+		series->setPieSize(0.7);
+		series->setPieStartAngle(ui.horizontalSlider_pieChartRot->value());
+		series->setPieEndAngle(360 + ui.horizontalSlider_pieChartRot->value());
+
+		chart->removeAllSeries();
+		chart->addSeries(series);
+		chart->setPreferredSize(ui.spinBox_pieChartRadius->value(), ui.spinBox_pieChartRadius->value());
+		scene_infomage->addItem(chart);
+	}
+}
+
 //***************Average slope***************
 void  Infomager::avgSlope()
 {
@@ -3377,9 +3594,11 @@ void Infomager::on_pushButton_lineOverlay_clicked()
 	
 	ui.label_lineOverlay->setVisible(true);
 	ui.label_barOverlay->setVisible(false);
+	ui.label_pieOverlay->setVisible(false);
 	
 	ui.groupBox_LineOverlay->setVisible(true);
 	ui.groupBox_BarOverlay->setVisible(false);
+	ui.groupBox_PieOverlay->setVisible(false);
 
 	ui.label_err1->setVisible(true);
 	ui.label_err1->setText(QString("Orientation:"));
@@ -3726,9 +3945,11 @@ void Infomager::on_pushButton_barOverlay_clicked()
 	barOverlay = true;
 	ui.label_lineOverlay->setVisible(false);
 	ui.label_barOverlay->setVisible(true);
+	ui.label_pieOverlay->setVisible(false);
 
 	ui.groupBox_LineOverlay->setVisible(false);
 	ui.groupBox_BarOverlay->setVisible(true);
+	ui.groupBox_PieOverlay->setVisible(false);
 	
 	ui.label_err1->setVisible(true);
 	ui.label_err1->setText(QString("Orientation:"));
