@@ -15,7 +15,7 @@ The code requires two libraries to run
 
 * [Qt Version 5.12.4](https://www.qt.io/download)
 
-Additionally, the tool makes use of the Google Custom Search API to retrieve images. To use this feature you will need an API key. You can get a key through your [Google Developer account](https://console.developers.google.com/apis/dashboard)
+Additionally, the tool makes use of the Google Custom Search API to retrieve images. To use this feature you will need an API key. You can get a key through your [Google Developer account](https://console.developers.google.com/apis/dashboard).
 You will need to edit line 233 in infomager.cpp and add your goole API link with the key.
 
 
